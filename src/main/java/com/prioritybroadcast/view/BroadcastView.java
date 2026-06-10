@@ -1,5 +1,6 @@
 package com.prioritybroadcast.view;
 
+import com.prioritybroadcast.MockMessagingService;
 import com.prioritybroadcast.model.Customer;
 import jakarta.annotation.PostConstruct;
 import jakarta.faces.view.ViewScoped;
@@ -8,12 +9,22 @@ import jakarta.inject.Named;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Named
 @ViewScoped
 public class BroadcastView implements Serializable {
 
     List<Customer> customers;
+    private String broadcastStatus = "Ready";
+    private final MockMessagingService mockMessagingService;
+
+    public BroadcastView(MockMessagingService mockMessagingService) {
+        this.mockMessagingService = mockMessagingService;
+    }
+
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     @PostConstruct
     public void init(){
@@ -33,6 +44,30 @@ public class BroadcastView implements Serializable {
 
     public List<Customer> getCustomers() {
         return customers;
+    }
+
+    public String getBroadcastStatus() {
+        return broadcastStatus;
+    }
+
+    public void startBroadcast() {
+        broadcastStatus = "Broadcast running";
+
+        executorService.submit(() -> {
+            for (Customer customer : customers) {
+                customer.setStatus("Sending");
+
+                boolean success = mockMessagingService.sendMessage(customer);
+
+                if (success) {
+                    customer.setStatus("Sent");
+                } else {
+                    customer.setStatus("Failed");
+                }
+            }
+
+            broadcastStatus = "Broadcast finished";
+        });
     }
 
 }

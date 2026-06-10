@@ -10,7 +10,32 @@
 <h:body>
     <h:form id="broadcastForm">
         <p:panel header="Priority Broadcast">
-            <p:outputLabel value="PrimeFaces page is running."/>
+            <p:commandButton value="Start Priority Broadcast"
+                             action="#{broadcastView.startBroadcast}"
+                             process="@this"
+                             update="broadcastStatus" />
+
+            <p:outputPanel id="broadcastStatus" style="margin-top: 12px; display: block;">
+                <h:outputText value="#{broadcastView.broadcastStatus}" />
+            </p:outputPanel>
+
+            <p:dataTable id="customerTable"
+                         value="#{broadcastView.customers}"
+                         var="customer"
+                         style="margin-top: 16px;">
+
+                <p:column headerText="Name">
+                    <h:outputText value="#{customer.name}" />
+                </p:column>
+
+                <p:column headerText="Phone Number">
+                    <h:outputText value="#{customer.phoneNumber}" />
+                </p:column>
+
+                <p:column headerText="Status">
+                    <h:outputText value="#{customer.status}" />
+                </p:column>
+            </p:dataTable>
         </p:panel>
     </h:form>
 </h:body>
