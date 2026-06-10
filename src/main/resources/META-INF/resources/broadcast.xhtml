@@ -9,15 +9,27 @@
 
 <h:body>
     <h:form id="broadcastForm">
+        <p:poll id="broadcastPoll"
+                interval="1"
+                listener="#{broadcastView.refresh}"
+                update="broadcastStatus broadcastProgress customerTable"
+                active="#{broadcastView.broadcastRunning}" />
+
         <p:panel header="Priority Broadcast">
             <p:commandButton value="Start Priority Broadcast"
                              action="#{broadcastView.startBroadcast}"
                              process="@this"
-                             update="broadcastStatus" />
+                             update="broadcastStatus broadcastProgress customerTable broadcastPoll" />
 
             <p:outputPanel id="broadcastStatus" style="margin-top: 12px; display: block;">
                 <h:outputText value="#{broadcastView.broadcastStatus}" />
             </p:outputPanel>
+
+            <p:progressBar id="broadcastProgress"
+                           value="#{broadcastView.progress}"
+                           labelTemplate="{value}%"
+                           displayOnly="true"
+                           style="margin-top: 12px;" />
 
             <p:dataTable id="customerTable"
                          value="#{broadcastView.customers}"

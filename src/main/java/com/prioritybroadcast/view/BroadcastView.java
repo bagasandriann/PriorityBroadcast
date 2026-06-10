@@ -19,15 +19,14 @@ public class BroadcastView implements Serializable {
     List<Customer> customers;
     private String broadcastStatus = "Ready";
     private final MockMessagingService mockMessagingService;
-
-    public BroadcastView(MockMessagingService mockMessagingService) {
-        this.mockMessagingService = mockMessagingService;
-    }
-
-    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private boolean broadcastRunning;
+    private int progress;
+    private transient ExecutorService executorService;
 
     @PostConstruct
     public void init(){
+        executorService = Executors.newSingleThreadExecutor();
+
         customers = new ArrayList<>();
 
         customers.add(new Customer("Bagas Andrian", "08123456781", "Pending"));
@@ -50,8 +49,23 @@ public class BroadcastView implements Serializable {
         return broadcastStatus;
     }
 
+    public BroadcastView(MockMessagingService mockMessagingService) {
+        this.mockMessagingService = mockMessagingService;
+    }
+
+    public boolean isBroadcastRunning() {
+        return broadcastRunning;
+    }
+
+    public int getProgress() {
+        return progress;
+    }
+
     public void startBroadcast() {
         broadcastStatus = "Broadcast running";
+
+        broadcastRunning = true;
+        progress = 0;
 
         executorService.submit(() -> {
             for (Customer customer : customers) {
@@ -67,7 +81,20 @@ public class BroadcastView implements Serializable {
             }
 
             broadcastStatus = "Broadcast finished";
+            broadcastRunning = false;
         });
+    }
+
+    public void refresh() {
+        long completedCount = customers.stream()
+                .filter(customer -> "Sent".equals(customer.getStatus()) || "Failed".equals(customer.getStatus()))
+                .count();
+
+        progress = (int) ((completedCount * 100) / customers.size());
+
+        if (broadcastRunning) {
+            broadcastStatus = "Broadcast running: " + completedCount + " of " + customers.size() + " completed";
+        }
     }
 
 }
